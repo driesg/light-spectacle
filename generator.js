@@ -14,7 +14,6 @@ let events = {
 
 let initPusher = ()=> {
 
-  let service = "https://www.airtasker.com/api/v2/";
   let channelName = 'public-notifications';
 
   let pusher = new Pusher(config.pusherToken, {
