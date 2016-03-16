@@ -14,9 +14,21 @@ let generator = () => {
 
   let initPusher = (options) => {
 
-    var onEvent = options.onEvent;
+    let onEvent = options.onEvent;
 
-    con.log("initPusher");
+    if (options.random) {
+      con.log("Generator - running in random mode! Pusher is not connected!");
+      let doIt = () => {
+        var keys = Object.keys(events);
+        var key = keys[Math.floor(keys.length * Math.random())];
+        var ev = events[key];
+        onEvent(ev, {nothing: Math.random()});
+        setTimeout(doIt, 100 + Math.random() * 4000);
+      }
+      return setTimeout(doIt, 1000);
+    }
+
+    con.log("Generator - initPusher");
 
     let channelName = 'public-notifications';
 
@@ -33,7 +45,7 @@ let generator = () => {
     });
     channel.bind('pusher:subscription_succeeded', (data) => {
       channel.bind('new_task_posted', (data) => {
-        onEvent("new_task_posted", data);
+        onEvent(events.TASK_POST, data);
       });
     });
   }

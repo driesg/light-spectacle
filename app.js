@@ -3,5 +3,6 @@ var m = model();
 var v = view();
 
 g.init({
-  onEvent: v.log
+  onEvent: v.log,
+  random: true
 });
