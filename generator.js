@@ -4,26 +4,44 @@ let generator = () => {
 
   let con = console;
 
-  let events = {
-    COMMENT: "COMMENT",
-    SIGNUP: "SIGNUP",
-    TASK_ASSIGN: "TASK_ASSIGN",
-    TASK_COMPLETE: "TASK_COMPLETE",
-    TASK_POST: "TASK_POST"
-  }
-
   let initPusher = (options) => {
 
     let onEvent = options.onEvent;
 
     if (options.random) {
+      let taskIDs = [], tasksTotal = 10;
+      while (taskIDs.length < tasksTotal) {
+        taskIDs.push(Math.round(Math.random() * 1e10));
+      }
+      var tasksPosted = [];
+
       con.log("Generator - running in random mode! Pusher is not connected!");
       let doIt = () => {
         var keys = Object.keys(events);
         var key = keys[Math.floor(keys.length * Math.random())];
         var ev = events[key];
-        onEvent(ev, {nothing: Math.random()});
-        setTimeout(doIt, 100 + Math.random() * 4000);
+
+        var taskIDIndex, taskID, otherID;
+        if (ev === events.TASK_POST) { // new task!!!
+          taskIDIndex = Math.floor(Math.random() * taskIDs.length);
+          taskID = taskIDs[taskIDIndex];
+          taskIDs.splice(taskIDIndex, 1);
+          tasksPosted.push(taskID);
+          con.log("taskIDs", taskIDs);
+        } else {
+          taskIDIndex = Math.floor(Math.random() * tasksPosted.length);
+          taskID = tasksPosted[taskIDIndex];
+          otherID = Math.round(Math.random() * 1e10);
+        }
+        onEvent(ev, {
+          taskID: taskID,
+          id: otherID
+        });
+        if (taskIDs.length) {
+          setTimeout(doIt, 100 + Math.random() * 400);
+        } else {
+          con.log("game over! you lose.");          
+        }
       }
       return setTimeout(doIt, 1000);
     }
