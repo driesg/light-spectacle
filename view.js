@@ -13,6 +13,6 @@ let view = ()=> {
   }
 
   return {
-    log: otherLog
+    log: customLog
   }
 }

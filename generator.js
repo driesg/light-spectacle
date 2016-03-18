@@ -5,10 +5,10 @@ let generator = () => {
   let con = console;
 
   let events = {
-    // COMMENT: "COMMENT",
-    // SIGNUP: "SIGNUP",
-    // TASK_ASSIGN: "TASK_ASSIGN",
-    // TASK_COMPLETE: "TASK_COMPLETE",
+    COMMENT: "COMMENT",
+    SIGNUP: "SIGNUP",
+    TASK_ASSIGN: "TASK_ASSIGN",
+    TASK_COMPLETE: "TASK_COMPLETE",
     TASK_POST: "TASK_POST"
   }
 
@@ -22,10 +22,7 @@ let generator = () => {
         var keys = Object.keys(events);
         var key = keys[Math.floor(keys.length * Math.random())];
         var ev = events[key];
-        onEvent(ev, {
-          nothing: Math.random(),
-
-        });
+        onEvent(ev, {nothing: Math.random()});
         setTimeout(doIt, 100 + Math.random() * 4000);
       }
       return setTimeout(doIt, 1000);
