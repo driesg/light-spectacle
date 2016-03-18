@@ -21,10 +21,11 @@ let view = ()=> {
   var tasks = [];
   var startTime = new Date().getTime();
 
-  let newEvent = (ev, status) => {
-    if (status.taskID) {
+  let newEvent = (ev, details) => {
+    if (details.taskID) {
       tasks.push({
-        id: status.taskID,
+        status: details.status,
+        id: details.taskID,
         time: new Date().getTime() - startTime
       });
     }
