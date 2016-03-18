@@ -9,10 +9,10 @@ let view = ()=> {
   }
 
   let otherLog = (ev, status) => {
-    con.log(ev, status);
+    console.log(ev, status);
   }
 
   return {
-    log: customLog
+    log: otherLog
   }
 }
