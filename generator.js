@@ -43,8 +43,8 @@ let generator = () => {
 
       let dispatch = (ev) => {
         con.log("================");
-        con.log("tasksPosted", tasksPosted);
-        con.log("tasksAssigned", tasksAssigned);
+        con.log("tasksPosted   ", tasksPosted);
+        con.log("tasksAssigned ", tasksAssigned);
         con.log("tasksCompleted", tasksCompleted);
         onEvent(ev, {
           status: ev,
