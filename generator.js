@@ -5,11 +5,12 @@ let generator = () => {
   let con = console;
 
   let events = {
-    COMMENT: "COMMENT",
-    SIGNUP: "SIGNUP",
-    TASK_ASSIGN: "TASK_ASSIGN",
-    TASK_COMPLETE: "TASK_COMPLETE",
-    TASK_POST: "TASK_POST"
+    // COMMENT: "COMMENT"
+    // SIGNUP: "SIGNUP",
+    // TASK_ASSIGN: "TASK_ASSIGN",
+    // TASK_COMPLETE: "TASK_COMPLETE",
+    // TASK_POST: "TASK_POST"
+    TASK: "TASK"
   }
 
   let initPusher = (options) => {
@@ -22,8 +23,13 @@ let generator = () => {
         var keys = Object.keys(events);
         var key = keys[Math.floor(keys.length * Math.random())];
         var ev = events[key];
-        onEvent(ev, {nothing: Math.random()});
-        setTimeout(doIt, 100 + Math.random() * 4000);
+        onEvent(ev, {
+          // fake model
+          id: Math.floor( Math.random() * 100),
+          comments : Math.floor( Math.random() * 10),
+          assigned : false,
+        });
+        setTimeout(doIt, 100 + Math.random() * 16000);
       }
       return setTimeout(doIt, 1000);
     }
