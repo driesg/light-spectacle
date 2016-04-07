@@ -12,7 +12,15 @@ let generator = () => {
     // TASK_POST: "TASK_POST"
     TASK: "TASK"
   }
+	let makeName = function() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+    for( var i=0; i < 5; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+	}
   let initPusher = (options) => {
 
     let onEvent = options.onEvent;
@@ -26,7 +34,8 @@ let generator = () => {
         onEvent(ev, {
           // fake model
           id: Math.floor( Math.random() * 100),
-          comments : Math.floor( Math.random() * 10),
+          name: makeName(),
+          coments : Math.floor( Math.random() * 10),
           assigned : false,
         });
         setTimeout(doIt, 100 + Math.random() * 16000);

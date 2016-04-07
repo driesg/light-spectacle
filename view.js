@@ -173,8 +173,9 @@ let view = ()=> {
 		ctx.stroke();
 	}
 
-  let addObjectPusher = (ev, obj) => {
 
+
+	let addObject = function(ev, obj) {
 		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
@@ -189,6 +190,11 @@ let view = ()=> {
 		mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
 		mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 46;
 		object.add( mesh );
+	}
+
+  let addObjectPusher = (ev, obj) => {
+
+		addObject(ev, obj);
 
 		if (typeof obj != "undefined") {
 			if (typeof obj.message != "undefined") {
@@ -198,15 +204,22 @@ let view = ()=> {
 				object.add( spritey );
 			}
 		}
-
-		// spherePositionX = 0;
-		// sphereRotationY = 0;
-		// sphereRotationZ = 0;
-
   }
 
 
+  let addObjectGenerator = (ev, obj) => {
+		addObject(ev, obj);
 
+		var spherePositionX =  Math.random() - 0.5;
+		var spherePositionY =  Math.random() - 0.6;
+		var spherePositionZ =  Math.random() - 0.5;
+
+		var spritey = makeTextSprite( obj.name,
+		{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );
+		spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
+		object.add( spritey );
+
+  }
 	var camera, scene, renderer, composer;
 	var object, light, light2, ambientLight;
 
@@ -221,6 +234,7 @@ let view = ()=> {
 
   let otherLog = (ev, status) => {
     console.log(ev, status);
+		// if random is true use addObjectGenerator
     addObjectPusher(ev, status);
   }
 
