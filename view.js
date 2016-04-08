@@ -99,7 +99,7 @@ let view = ()=> {
 
 	}
 
-	function makeTextSprite( message, parameters )
+	function makeTextSprite( message, parameters, position)
 	{
 		console.log("maketextsprite")
 		if ( parameters === undefined ) parameters = {};
@@ -117,7 +117,7 @@ let view = ()=> {
 			parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
 
 		var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
-			parameters["backgroundColor"] : { r:255, g:255, b:255, a:1.0 };
+			parameters["backgroundColor"] : { r:0, g:0, b:0, a:1.0 };
 
 		// var spriteAlignment = THREE.SpriteAlignment.topLeft;
 
@@ -141,7 +141,7 @@ let view = ()=> {
 		// 1.4 is extra height factor for text below baseline: g,j,p,q.
 
 		// text color
-		context.fillStyle = "rgba(0, 0, 0, 1.0)";
+		context.fillStyle = "rgba(255, 255, 255, 1.0)";
 
 		context.fillText( message, borderThickness, fontsize + borderThickness);
 
@@ -153,6 +153,16 @@ let view = ()=> {
 			{ map: texture, color:  0xffffff} );
 		var sprite = new THREE.Sprite( spriteMaterial );
 		sprite.scale.set(100,50,1.0);
+
+
+
+		// sprite.position.setX(posX);
+		// sprite.position.setY(posY);
+		// sprite.position.setZ(posZ);
+		sprite.position.set(position.x, position.y, position.z);
+
+		console.log("sprite properties", sprite)
+
 		return sprite;
 	}
 
@@ -174,22 +184,25 @@ let view = ()=> {
 		ctx.stroke();
 	}
 
-	let addObject = function(multipliers) {
+	let addObject = function(multipliers, position) {
 		console.log("add object receive multi", multipliers);
 		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
-		var spherePositionX =  Math.random() - 1;
-		var spherePositionY =  Math.random() - 1;
-		var spherePositionZ =  Math.random() - 1;
-		mesh.position.set( spherePositionX, spherePositionY, spherePositionZ ).normalize();
+
+		mesh.position.set( position.x, position.y, position.z ).normalize();
 		mesh.position.multiplyScalar( Math.random() * 300 );
-		var sphereRotationX =  Math.random() * 3;
-		var sphereRotationY =  Math.random() * 3;
-		var sphereRotationZ =  Math.random() * 3;
-		mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
+		// var sphereRotationX =  Math.random() * 3;
+		// var sphereRotationY =  Math.random() * 3;
+		// var sphereRotationZ =  Math.random() * 3;
+		// mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
+
 		//set multi
-		mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * multipliers.price;
+		// mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * multipliers.price;
+
+ 		mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.1 * multipliers.price;
+
+		console.log("mesh properties", mesh);
 		object.add( mesh );
 	}
 
@@ -197,26 +210,28 @@ let view = ()=> {
 
 		// addObject(ev, obj);
 		// Only add object when task exists
+		//First generate the shared position of the sphere and text
+		var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
 
 		if (typeof obj != "undefined") {
 			if (typeof obj.message != "undefined") {
 				console.log("create object");
 				if (typeof obj.message.task_id != "undefined") {
-					serviceGetTaskAddObject(obj.message.task_id);
+					serviceGetTaskAddObject(obj.message.task_id, position);
 					// console.log("multiplier", multipliers);
 				}
 
-				var spritey = makeTextSprite( obj.message.title,
-				{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } 	);
+				var spritey = makeTextSprite( obj.message.title, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
 				//these values actually need to be the same as the sphere
-				var spherePositionX =  Math.random() - 0.5;
-				var spherePositionY =  Math.random() - 0.6;
-				var spherePositionZ =  Math.random() - 0.5;
+				// var posX =  Math.random() - 10;
+				// var posY =  Math.random() - 10;
+				// var posZ =  Math.random() - 10;
 				// spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
 
-				spritey.position.setX(spherePositionX);
-				spritey.position.setY(spherePositionY);
-				spritey.position.setZ(spherePositionZ);
+
+				// spritey.position.setX(posX);
+				// spritey.position.setY(posY);
+				// spritey.position.setZ(posZ);
 
 				// var sphereRotationX =  Math.random() * 3;
 				// var sphereRotationY =  Math.random() * 3;
@@ -231,7 +246,7 @@ let view = ()=> {
 		}
   }
 
-	let serviceGetTaskAddObject = (id) => {
+	let serviceGetTaskAddObject = (id, position) => {
 		var serviceURL = "https://www.airtasker.com/api/v2/tasks/"+id;
 
 		var xmlhttp = new XMLHttpRequest();
@@ -254,7 +269,7 @@ let view = ()=> {
 			var price =	task.price;
 			// addObject(ev, obj);
 			var multipliers = { amount: task.amount, price: task.price };
-			addObject(multipliers);
+			addObject(multipliers, position);
 		}
 
 	}
