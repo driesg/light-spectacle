@@ -3,7 +3,6 @@
 
 let view = ()=> {
 	let init = () => {
-
 		// renderer = new THREE.WebGLRenderer();
 		renderer = new THREE.WebGLRenderer( { antialias:true, alpha: true } );
 		// renderer.setClearColor( 0x000000, 1);
@@ -11,9 +10,10 @@ let view = ()=> {
 		renderer.setSize( window.innerWidth, window.innerHeight );
 		document.body.appendChild( renderer.domElement );
 
-		camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+		camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 		// camera.position.z = 400;
 		scene = new THREE.Scene();
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
 
 		light = new THREE.DirectionalLight( 0xffffff );
 		light.position.set( 1, 1, 1 );
@@ -32,7 +32,7 @@ let view = ()=> {
 		load()
 
 		window.addEventListener( 'resize', onWindowResize, false );
-		renderer.domElement.addEventListener('click', reload, false);
+		document.getElementById("info").addEventListener('click', reload, false);
 	}
 
 	let onWindowResize = () => {
@@ -95,6 +95,7 @@ let view = ()=> {
 		object.rotation.y += 0.001;
 
 		composer.render();
+		controls.update();
 
 	}
 
@@ -173,54 +174,104 @@ let view = ()=> {
 		ctx.stroke();
 	}
 
-
-
-	let addObject = function(ev, obj) {
+	let addObject = function(multipliers) {
+		console.log("add object receive multi", multipliers);
 		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
-		var spherePositionX =  Math.random() - 0.5;
-		var spherePositionY =  Math.random() - 0.6;
-		var spherePositionZ =  Math.random() - 0.5;
+		var spherePositionX =  Math.random() - 1;
+		var spherePositionY =  Math.random() - 1;
+		var spherePositionZ =  Math.random() - 1;
 		mesh.position.set( spherePositionX, spherePositionY, spherePositionZ ).normalize();
 		mesh.position.multiplyScalar( Math.random() * 300 );
 		var sphereRotationX =  Math.random() * 3;
 		var sphereRotationY =  Math.random() * 3;
 		var sphereRotationZ =  Math.random() * 3;
 		mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
-		mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 46;
+		//set multi
+		mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * multipliers.price;
 		object.add( mesh );
 	}
 
   let addObjectPusher = (ev, obj) => {
 
-		addObject(ev, obj);
+		// addObject(ev, obj);
+		// Only add object when task exists
 
 		if (typeof obj != "undefined") {
 			if (typeof obj.message != "undefined") {
+				console.log("create object");
+				if (typeof obj.message.task_id != "undefined") {
+					serviceGetTaskAddObject(obj.message.task_id);
+					// console.log("multiplier", multipliers);
+				}
+
 				var spritey = makeTextSprite( obj.message.title,
-				{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );
-				spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
-				object.add( spritey );
+				{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } 	);
+				//these values actually need to be the same as the sphere
+				var spherePositionX =  Math.random() - 0.5;
+				var spherePositionY =  Math.random() - 0.6;
+				var spherePositionZ =  Math.random() - 0.5;
+				// spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
+
+				spritey.position.setX(spherePositionX);
+				spritey.position.setY(spherePositionY);
+				spritey.position.setZ(spherePositionZ);
+
+				// var sphereRotationX =  Math.random() * 3;
+				// var sphereRotationY =  Math.random() * 3;
+				// var sphereRotationZ =  Math.random() * 3;
+				//
+				// spritey.rotation.set(sphereRotationX, sphereRotationY, sphereRotationZ);
+
+				object.add(spritey);
+
+				console.log( "create sprite");
 			}
 		}
   }
 
+	let serviceGetTaskAddObject = (id) => {
+		var serviceURL = "https://www.airtasker.com/api/v2/tasks/"+id;
+
+		var xmlhttp = new XMLHttpRequest();
+
+		xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        var response = JSON.parse(xmlhttp.responseText);
+        myFunction(response);
+	    }
+		};
+
+		xmlhttp.open("GET", serviceURL, true);
+		xmlhttp.send();
+
+		function myFunction(response) {
+			console.log("response", response)
+			var task = response.task;
+			// multiplier can be either amount or price
+			var amount = task.amount;
+			var price =	task.price;
+			// addObject(ev, obj);
+			var multipliers = { amount: task.amount, price: task.price };
+			addObject(multipliers);
+		}
+
+	}
 
   let addObjectGenerator = (ev, obj) => {
-		addObject(ev, obj);
+		addObject();
 
 		var spherePositionX =  Math.random() - 0.5;
 		var spherePositionY =  Math.random() - 0.6;
 		var spherePositionZ =  Math.random() - 0.5;
 
-		var spritey = makeTextSprite( obj.name,
-		{ fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );
+		var spritey = makeTextSprite( obj.name, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );
 		spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
 		object.add( spritey );
 
   }
-	var camera, scene, renderer, composer;
+	var camera, scene, renderer, composer, controls;
 	var object, light, light2, ambientLight;
 
 	init();
@@ -235,6 +286,7 @@ let view = ()=> {
   let otherLog = (ev, status) => {
     console.log(ev, status);
 		// if random is true use addObjectGenerator
+
     addObjectPusher(ev, status);
   }
 
