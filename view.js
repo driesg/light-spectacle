@@ -26,8 +26,9 @@ let view = ()=> {
 		scene.add( light2 );
 
 		// scene.add( new THREE.AmbientLight( 0x888888 ) );
-		ambientLight =  new THREE.AmbientLight( 0x3f3f3f );
-		ambientLight.intensity = 3;
+		// ambientLight =  new THREE.AmbientLight( 0x3f3f3f );
+		ambientLight =  new THREE.AmbientLight( 0xf0f0f0 );
+		ambientLight.intensity = 0.5;
 		scene.add(ambientLight);
 		load()
 
@@ -71,12 +72,12 @@ let view = ()=> {
 		composer.addPass( new THREE.RenderPass( scene, camera ) );
 
 		//disabled dot screen shader for now
-		// var effect = new THREE.ShaderPass( THREE.DotScreenShader );
-		//
-		// effect.uniforms[ 'scale' ].value = 13;
-		// effect.uniforms[ 'tDiffuse' ].value = 0.8;
-		//
-		// composer.addPass( effect );
+		var effect = new THREE.ShaderPass( THREE.DotScreenShader );
+
+		effect.uniforms[ 'scale' ].value = 16;
+		effect.uniforms[ 'tDiffuse' ].value = 0.8;
+
+		composer.addPass( effect );
 
 		this.effectRGB = new THREE.ShaderPass( THREE.RGBShiftShader );
 		this.effectRGB.uniforms[ 'amount' ].value = 0.0015;
@@ -95,8 +96,8 @@ let view = ()=> {
 		// console.log("ANIMATE rgb effect value", this.effectRGB.uniforms[ 'amount' ].value );
 
 		requestAnimationFrame( animate );
-		object.rotation.x += 0.0001;
-		object.rotation.y += 0.0001;
+		object.rotation.x += 0.001;
+		object.rotation.y += 0.001;
 
 		composer.render();
 		controls.update();
@@ -234,7 +235,7 @@ let view = ()=> {
 				}
 
 
-				var spritey = makeTextSprite( obj.message.title, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
+
 				//these values actually need to be the same as the sphere
 				// var posX =  Math.random() - 10;
 				// var posY =  Math.random() - 10;
@@ -244,7 +245,8 @@ let view = ()=> {
 				// spritey.position.setY(posY);
 				// spritey.position.setZ(posZ);
 
-				object.add(spritey);
+				// var spritey = makeTextSprite( obj.message.title, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
+				// object.add(spritey);
 
 				console.log( "create sprite");
 			}
@@ -275,12 +277,16 @@ let view = ()=> {
 			// addObject(ev, obj);
 			var multipliers = { amount: task.amount, price: task.price };
 			addObject(multipliers, position);
+			console.log( "create sprite");
+			var spriteText = task.name + ": $" + price;
+			var spritey = makeTextSprite(spriteText, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
+			object.add(spritey);
 
 			taskCount++;
 			valueCount+=price;
 
-			document.getElementById("time-counter").innerHTML = taskCount;
-			document.getElementById("value-count").innerHTML = "$"+valueCount;
+			document.getElementById("task-counter").innerHTML = taskCount;
+			document.getElementById("value-counter").innerHTML = "$"+valueCount;
 		}
 
 	}
