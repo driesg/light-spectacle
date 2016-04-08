@@ -20,15 +20,15 @@ let view = ()=> {
 
 		light2 = new THREE.DirectionalLight( 0xffffff );
 		light2.position.set( 5, 2,2 );
-		light2.intensity = 1;
+		light2.intensity = 2;
 
 		scene.add( light );
 		scene.add( light2 );
 
 		// scene.add( new THREE.AmbientLight( 0x888888 ) );
-		// ambientLight =  new THREE.AmbientLight( 0x3f3f3f );
-		// ambientLight.intensity = 10;
-		// scene.add(ambientLight);
+		ambientLight =  new THREE.AmbientLight( 0x3f3f3f );
+		ambientLight.intensity = 3;
+		scene.add(ambientLight);
 		load()
 
 		window.addEventListener( 'resize', onWindowResize, false );
@@ -43,6 +43,8 @@ let view = ()=> {
 	}
 
   let load = () => {
+		taskCount = 0;
+		valueCount = 0;
 		scene.remove(object);
 		scene.remove(object);
 
@@ -68,11 +70,13 @@ let view = ()=> {
 		composer = new THREE.EffectComposer( renderer );
 		composer.addPass( new THREE.RenderPass( scene, camera ) );
 
-		var effect = new THREE.ShaderPass( THREE.DotScreenShader );
-
-		effect.uniforms[ 'scale' ].value = 13;
-		effect.uniforms[ 'tDiffuse' ].value = 0.8;
-		composer.addPass( effect );
+		//disabled dot screen shader for now
+		// var effect = new THREE.ShaderPass( THREE.DotScreenShader );
+		//
+		// effect.uniforms[ 'scale' ].value = 13;
+		// effect.uniforms[ 'tDiffuse' ].value = 0.8;
+		//
+		// composer.addPass( effect );
 
 		this.effectRGB = new THREE.ShaderPass( THREE.RGBShiftShader );
 		this.effectRGB.uniforms[ 'amount' ].value = 0.0015;
@@ -91,8 +95,8 @@ let view = ()=> {
 		// console.log("ANIMATE rgb effect value", this.effectRGB.uniforms[ 'amount' ].value );
 
 		requestAnimationFrame( animate );
-		object.rotation.x += 0.001;
-		object.rotation.y += 0.001;
+		object.rotation.x += 0.0001;
+		object.rotation.y += 0.0001;
 
 		composer.render();
 		controls.update();
@@ -101,7 +105,7 @@ let view = ()=> {
 
 	function makeTextSprite( message, parameters, position)
 	{
-		console.log("maketextsprite")
+		console.log("<<<<<< maketextsprite check position >>>>>>>>", position)
 		if ( parameters === undefined ) parameters = {};
 
 		var fontface = parameters.hasOwnProperty("fontface") ?
@@ -122,12 +126,16 @@ let view = ()=> {
 		// var spriteAlignment = THREE.SpriteAlignment.topLeft;
 
 		var canvas = document.createElement('canvas');
+		canvas.width = 1000;
+		canvas.height = 500;
 		var context = canvas.getContext('2d');
 		context.font = "Bold " + fontsize + "px " + fontface;
 
 		// get size data (height depends only on font size)
 		var metrics = context.measureText( message );
 		var textWidth = metrics.width;
+		console.log("text width:", textWidth)
+
 
 		// background color
 		context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + ","
@@ -149,8 +157,7 @@ let view = ()=> {
 		var texture = new THREE.Texture(canvas)
 		texture.needsUpdate = true;
 
-		var spriteMaterial = new THREE.SpriteMaterial(
-			{ map: texture, color:  0xffffff} );
+		var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color:  0xffffff });
 		var sprite = new THREE.Sprite( spriteMaterial );
 		sprite.scale.set(100,50,1.0);
 
@@ -159,7 +166,9 @@ let view = ()=> {
 		// sprite.position.setX(posX);
 		// sprite.position.setY(posY);
 		// sprite.position.setZ(posZ);
-		sprite.position.set(position.x, position.y, position.z);
+		sprite.position.set(position.x, position.y, position.z).normalize();
+		sprite.position.multiplyScalar(100);
+
 
 		console.log("sprite properties", sprite)
 
@@ -185,17 +194,18 @@ let view = ()=> {
 	}
 
 	let addObject = function(multipliers, position) {
-		console.log("add object receive multi", multipliers);
+		console.log("<<<< add object position >>>>>", position);
 		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
 
 		mesh.position.set( position.x, position.y, position.z ).normalize();
-		mesh.position.multiplyScalar( Math.random() * 300 );
-		// var sphereRotationX =  Math.random() * 3;
-		// var sphereRotationY =  Math.random() * 3;
-		// var sphereRotationZ =  Math.random() * 3;
-		// mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
+		// mesh.position.multiplyScalar( Math.random() * 300 );
+		mesh.position.multiplyScalar(100);
+		var sphereRotationX =  Math.random() * 3;
+		var sphereRotationY =  Math.random() * 3;
+		var sphereRotationZ =  Math.random() * 3;
+		mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
 
 		//set multi
 		// mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * multipliers.price;
@@ -211,7 +221,8 @@ let view = ()=> {
 		// addObject(ev, obj);
 		// Only add object when task exists
 		//First generate the shared position of the sphere and text
-		var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
+		// var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
+		var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
 
 		if (typeof obj != "undefined") {
 			if (typeof obj.message != "undefined") {
@@ -219,7 +230,9 @@ let view = ()=> {
 				if (typeof obj.message.task_id != "undefined") {
 					serviceGetTaskAddObject(obj.message.task_id, position);
 					// console.log("multiplier", multipliers);
+
 				}
+
 
 				var spritey = makeTextSprite( obj.message.title, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
 				//these values actually need to be the same as the sphere
@@ -227,17 +240,9 @@ let view = ()=> {
 				// var posY =  Math.random() - 10;
 				// var posZ =  Math.random() - 10;
 				// spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
-
-
 				// spritey.position.setX(posX);
 				// spritey.position.setY(posY);
 				// spritey.position.setZ(posZ);
-
-				// var sphereRotationX =  Math.random() * 3;
-				// var sphereRotationY =  Math.random() * 3;
-				// var sphereRotationZ =  Math.random() * 3;
-				//
-				// spritey.rotation.set(sphereRotationX, sphereRotationY, sphereRotationZ);
 
 				object.add(spritey);
 
@@ -264,12 +269,18 @@ let view = ()=> {
 		function myFunction(response) {
 			console.log("response", response)
 			var task = response.task;
-			// multiplier can be either amount or price
+			// multiplier can be either amount or price or in the future a more complex algorithm in relation to: price, comments, bids
 			var amount = task.amount;
 			var price =	task.price;
 			// addObject(ev, obj);
 			var multipliers = { amount: task.amount, price: task.price };
 			addObject(multipliers, position);
+
+			taskCount++;
+			valueCount+=price;
+
+			document.getElementById("time-counter").innerHTML = taskCount;
+			document.getElementById("value-count").innerHTML = "$"+valueCount;
 		}
 
 	}
@@ -281,13 +292,16 @@ let view = ()=> {
 		var spherePositionY =  Math.random() - 0.6;
 		var spherePositionZ =  Math.random() - 0.5;
 
-		var spritey = makeTextSprite( obj.name, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} } );
+		var spritey = makeTextSprite( obj.name, { fontsize: 32, fontface: "Arial", borderColor: {r:0, g:0, b:255, a:1.0}, borderThickness: 0 } );
 		spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
 		object.add( spritey );
 
   }
 	var camera, scene, renderer, composer, controls;
 	var object, light, light2, ambientLight;
+
+	var taskCount = 0;
+	var valueCount = 0;
 
 	init();
 	animate();

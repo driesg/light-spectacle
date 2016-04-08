@@ -10,16 +10,35 @@
 				overflow: hidden;
 			}
 
-			#info {
+			#info, #task-count, #value-count, #time-elapsed {
 				color: #fff;
 				position: absolute;
-				bottom: 20px;
 				padding: 5px 20px;
 				font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
 				font-weight: 100;
 				font-size: 18px;
 				background-color: #000;
 			}
+
+      #info {
+        bottom: 20px;
+      }
+
+			#task-count {
+				bottom: 20px;
+        right: 100px;
+			}
+
+      #value-count {
+				bottom: 20px;
+        right: 300px;
+      }
+
+      #time-elapsed {
+				bottom: 20px;
+        right: 500px;
+      }
+
 
 		</style>
 
@@ -31,13 +50,14 @@
 
     <!-- <link rel="stylesheet" href="css/main.css"> -->
 
-
-
-
-
   </head>
   <body>
     <div id="info">Click to clear screen</div>
+
+    <div id="task-count">Task count: <span id="task-counter">0</span></div>
+    <div id="value-count">Value count: <span id="value-counter">$0</span></div>
+    <div id="time-elapsed">Time elapsed: <span id="time-counter">0</span></div>
+
 
     <h1>Airtasker Galactic visualization tool</h1>
 
