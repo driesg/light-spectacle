@@ -17,6 +17,7 @@ let view = ()=> {
 
 		light = new THREE.DirectionalLight( 0xffffff );
 		light.position.set( 1, 1, 1 );
+		light.intensity = 1;
 
 		light2 = new THREE.DirectionalLight( 0xffffff );
 		light2.position.set( 5, 2,2 );
@@ -27,9 +28,9 @@ let view = ()=> {
 
 		// scene.add( new THREE.AmbientLight( 0x888888 ) );
 		// ambientLight =  new THREE.AmbientLight( 0x3f3f3f );
-		ambientLight =  new THREE.AmbientLight( 0xf0f0f0 );
-		ambientLight.intensity = 0.5;
-		scene.add(ambientLight);
+		// ambientLight =  new THREE.AmbientLight( 0xf0f0f0 );
+		// ambientLight.intensity = 0.1;
+		// scene.add(ambientLight);
 		load()
 
 		window.addEventListener( 'resize', onWindowResize, false );
