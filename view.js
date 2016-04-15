@@ -2,6 +2,18 @@
 
 
 let view = ()=> {
+
+	var con = console;
+
+	var camera, scene, renderer, composer, controls;
+	var group, light, light2, ambientLight;
+	let meshes = [];
+
+	var taskCount = 0;
+	var valueCount = 0;
+
+
+
 	let init = () => {
 		// renderer = new THREE.WebGLRenderer();
 		renderer = new THREE.WebGLRenderer( { antialias:true, alpha: true } );
@@ -44,18 +56,17 @@ let view = ()=> {
 
 	}
 
-  let load = () => {
+	let load = () => {
 		taskCount = 0;
 		valueCount = 0;
-		scene.remove(object);
-		scene.remove(object);
+		scene.remove(group);
 
 		light.intensity = 0.3;
-		object = new THREE.Object3D();
-		scene.add( object );
+		group = new THREE.Object3D();
+		scene.add( group );
 
 		// for ( var i = 0; i < 10; i ++ ) {
-    //
+	//
 		// 	var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		// 	var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		// 	var mesh = new THREE.Mesh( geometry, material );
@@ -63,8 +74,8 @@ let view = ()=> {
 		// 	mesh.position.multiplyScalar( Math.random() * 300 );
 		// 	mesh.rotation.set( Math.random() * 3, Math.random() * 3, Math.random() * 3 );
 		// 	mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 46;
-		// 	object.add( mesh );
-    //
+		// 	group.add( mesh );
+	//
 		// }
 
 		camera.position.z = 400;
@@ -86,19 +97,33 @@ let view = ()=> {
 		this.effectRGB.renderToScreen = true;
 		composer.addPass( this.effectRGB );
 
-		console.log("rgb effect uniforms value", this.effectRGB.uniforms[ 'amount' ].value );
 	}
 
-  let reload = () => {
+	let reload = () => {
 		load();
 	}
 
-	let animate = () => {
+	let checkObjects = (time) => {
+		// con.log("checkObjects", meshes.length);
+		for (var i = meshes.length - 1; i >= 0; i--) {
+			var mesh = meshes[i].taskObject;
+			var scale = mesh.scale.x;
+			var newScale = scale * 0.999;
+			if (newScale > 0.1) {
+				mesh.scale.set(newScale, newScale, newScale);	
+			}
+		}
+	}
+
+	let animate = (time) => {
 		// console.log("ANIMATE rgb effect value", this.effectRGB.uniforms[ 'amount' ].value );
 
 		requestAnimationFrame( animate );
-		object.rotation.x += 0.001;
-		object.rotation.y += 0.001;
+
+		checkObjects(time);
+
+		group.rotation.x += 0.001;
+		group.rotation.y += 0.001;
 
 		composer.render();
 		controls.update();
@@ -128,8 +153,8 @@ let view = ()=> {
 		// var spriteAlignment = THREE.SpriteAlignment.topLeft;
 
 		var canvas = document.createElement('canvas');
-		canvas.width = 1000;
-		canvas.height = 500;
+		canvas.width = 1024;
+		canvas.height = 512;
 		var context = canvas.getContext('2d');
 		context.font = "Bold " + fontsize + "px " + fontface;
 
@@ -180,23 +205,24 @@ let view = ()=> {
 	// function for drawing rounded rectangles
 	function roundRect(ctx, x, y, w, h, r)
 	{
-	    ctx.beginPath();
-	    ctx.moveTo(x+r, y);
-	    ctx.lineTo(x+w-r, y);
-	    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-	    ctx.lineTo(x+w, y+h-r);
-	    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-	    ctx.lineTo(x+r, y+h);
-	    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-	    ctx.lineTo(x, y+r);
-	    ctx.quadraticCurveTo(x, y, x+r, y);
-	    ctx.closePath();
-	    ctx.fill();
+		ctx.beginPath();
+		ctx.moveTo(x+r, y);
+		ctx.lineTo(x+w-r, y);
+		ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+		ctx.lineTo(x+w, y+h-r);
+		ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+		ctx.lineTo(x+r, y+h);
+		ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+		ctx.lineTo(x, y+r);
+		ctx.quadraticCurveTo(x, y, x+r, y);
+		ctx.closePath();
+		ctx.fill();
 		ctx.stroke();
 	}
 
 	let addObject = function(multipliers, position) {
-		console.log("<<<< add object position >>>>>", position);
+		console.log("<<<< add group position >>>>>", position);
+
 		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
@@ -204,6 +230,7 @@ let view = ()=> {
 		mesh.position.set( position.x, position.y, position.z ).normalize();
 		// mesh.position.multiplyScalar( Math.random() * 300 );
 		mesh.position.multiplyScalar(100);
+
 		var sphereRotationX =  Math.random() * 3;
 		var sphereRotationY =  Math.random() * 3;
 		var sphereRotationZ =  Math.random() * 3;
@@ -212,13 +239,14 @@ let view = ()=> {
 		//set multi
 		// mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * multipliers.price;
 
- 		mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.1 * multipliers.price;
+		mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.1 * multipliers.price;
 
 		console.log("mesh properties", mesh);
-		object.add( mesh );
+
+		return mesh;
 	}
 
-  let addObjectPusher = (ev, obj) => {
+	let addObjectPusher = (ev, obj) => {
 
 		// addObject(ev, obj);
 		// Only add object when task exists
@@ -247,12 +275,12 @@ let view = ()=> {
 				// spritey.position.setZ(posZ);
 
 				// var spritey = makeTextSprite( obj.message.title, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
-				// object.add(spritey);
+				// group.add(spritey);
 
 				console.log( "create sprite");
 			}
 		}
-  }
+	}
 
 	let serviceGetTaskAddObject = (id, position) => {
 		var serviceURL = "https://www.airtasker.com/api/v2/tasks/"+id;
@@ -260,10 +288,10 @@ let view = ()=> {
 		var xmlhttp = new XMLHttpRequest();
 
 		xmlhttp.onreadystatechange = function() {
-	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-        var response = JSON.parse(xmlhttp.responseText);
-        myFunction(response);
-	    }
+		if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+		var response = JSON.parse(xmlhttp.responseText);
+		myFunction(response);
+		}
 		};
 
 		xmlhttp.open("GET", serviceURL, true);
@@ -271,17 +299,28 @@ let view = ()=> {
 
 		function myFunction(response) {
 			console.log("response", response)
+
+			var taskObject = new THREE.Object3D();
+			group.add( taskObject );
+
 			var task = response.task;
 			// multiplier can be either amount or price or in the future a more complex algorithm in relation to: price, comments, bids
 			var amount = task.amount;
 			var price =	task.price;
 			// addObject(ev, obj);
 			var multipliers = { amount: task.amount, price: task.price };
-			addObject(multipliers, position);
-			console.log( "create sprite");
+			var sphere = addObject(multipliers, position);
 			var spriteText = task.name + ": $" + price;
 			var spritey = makeTextSprite(spriteText, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
-			object.add(spritey);
+			
+			taskObject.add(sphere);
+			taskObject.add(spritey);
+
+			meshes.push({
+				taskObject: taskObject,
+				sphere: sphere,
+				spritey: spritey
+			});
 
 			taskCount++;
 			valueCount+=price;
@@ -292,41 +331,37 @@ let view = ()=> {
 
 	}
 
-  let addObjectGenerator = (ev, obj) => {
-		addObject();
+  // let addObjectGenerator = (ev, obj) => {
+		// addObject();
 
-		var spherePositionX =  Math.random() - 0.5;
-		var spherePositionY =  Math.random() - 0.6;
-		var spherePositionZ =  Math.random() - 0.5;
+		// var spherePositionX =  Math.random() - 0.5;
+		// var spherePositionY =  Math.random() - 0.6;
+		// var spherePositionZ =  Math.random() - 0.5;
 
-		var spritey = makeTextSprite( obj.name, { fontsize: 32, fontface: "Arial", borderColor: {r:0, g:0, b:255, a:1.0}, borderThickness: 0 } );
-		spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
-		object.add( spritey );
+		// var spritey = makeTextSprite( obj.name, { fontsize: 32, fontface: "Arial", borderColor: {r:0, g:0, b:255, a:1.0}, borderThickness: 0 } );
+		// spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
+		// group.add( spritey );
 
-  }
-	var camera, scene, renderer, composer, controls;
-	var object, light, light2, ambientLight;
+  // }
 
-	var taskCount = 0;
-	var valueCount = 0;
 
 	init();
-	animate();
+	animate(0);
 
-  let customLog = (ev, status) => {
-    var div = document.createElement("div");
-    div.innerHTML = "### " + ev + " " + status;
-    document.body.appendChild(div);
-  }
+	let customLog = (ev, status) => {
+		var div = document.createElement("div");
+		div.innerHTML = "### " + ev + " " + status;
+		document.body.appendChild(div);
+	}
 
-  let otherLog = (ev, status) => {
-    console.log(ev, status);
-		// if random is true use addObjectGenerator
+	let otherLog = (ev, status) => {
+		console.log(ev, status);
+			// if random is true use addObjectGenerator
 
-    addObjectPusher(ev, status);
-  }
+		addObjectPusher(ev, status);
+	}
 
-  return {
-    log: otherLog
-  }
+	return {
+		log: otherLog
+	}
 }

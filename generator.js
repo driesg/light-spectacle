@@ -43,9 +43,7 @@ let generator = () => {
       return setTimeout(doIt, 1000);
     }
 
-    con.log("Generator - initPusher");
-
-    let channelName = 'public-notifications';
+    // con.log("Generator - initPusher");
 
     let pusher = new Pusher(config.pusherToken, {
       authEndpoint: config.pusherEndPoint,
@@ -54,7 +52,7 @@ let generator = () => {
 
     Pusher.log = onEvent;
 
-    let channel = pusher.subscribe(channelName);
+    let channel = pusher.subscribe(config.pusherChannel);
     channel.bind('pusher:subscription_error', (status) => {
       onEvent("pusher:subscription_error", status);
     });
