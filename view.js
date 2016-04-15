@@ -1,6 +1,5 @@
 "use strict";
 
-
 let view = ()=> {
 
 	var con = console;
@@ -227,10 +226,6 @@ let view = ()=> {
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
 
-		mesh.position.set( position.x, position.y, position.z ).normalize();
-		// mesh.position.multiplyScalar( Math.random() * 300 );
-		mesh.position.multiplyScalar(100);
-
 		var sphereRotationX =  Math.random() * 3;
 		var sphereRotationY =  Math.random() * 3;
 		var sphereRotationZ =  Math.random() * 3;
@@ -247,61 +242,40 @@ let view = ()=> {
 	}
 
 	let addObjectPusher = (ev, obj) => {
-
-		// addObject(ev, obj);
-		// Only add object when task exists
-		//First generate the shared position of the sphere and text
-		// var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
-		var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
-
-		if (typeof obj != "undefined") {
-			if (typeof obj.message != "undefined") {
-				console.log("create object");
-				if (typeof obj.message.task_id != "undefined") {
-					serviceGetTaskAddObject(obj.message.task_id, position);
-					// console.log("multiplier", multipliers);
-
-				}
-
-
-
-				//these values actually need to be the same as the sphere
-				// var posX =  Math.random() - 10;
-				// var posY =  Math.random() - 10;
-				// var posZ =  Math.random() - 10;
-				// spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
-				// spritey.position.setX(posX);
-				// spritey.position.setY(posY);
-				// spritey.position.setZ(posZ);
-
-				// var spritey = makeTextSprite( obj.message.title, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
-				// group.add(spritey);
-
-				console.log( "create sprite");
-			}
+		if (obj && obj.message && obj.message.task_id) {
+			serviceGetTaskAddObject(obj.message.task_id);
 		}
 	}
 
-	let serviceGetTaskAddObject = (id, position) => {
-		var serviceURL = "https://www.airtasker.com/api/v2/tasks/"+id;
+	let serviceGetTaskAddObject = (id) => {
+		var taskURL = config.serviceURL +  "/tasks/" + id;
 
 		var xmlhttp = new XMLHttpRequest();
 
 		xmlhttp.onreadystatechange = function() {
-		if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-		var response = JSON.parse(xmlhttp.responseText);
-		myFunction(response);
-		}
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				var response = JSON.parse(xmlhttp.responseText);
+				myFunction(response);
+			}
 		};
 
-		xmlhttp.open("GET", serviceURL, true);
+		xmlhttp.open("GET", taskURL, true);
 		xmlhttp.send();
 
 		function myFunction(response) {
 			console.log("response", response)
 
+			// Only add object when task exists
+			//First generate the shared position of the sphere and text
+			// var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
+			var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
+
+
 			var taskObject = new THREE.Object3D();
 			group.add( taskObject );
+			group.position.set( position.x, position.y, position.z ).normalize();
+			group.position.multiplyScalar(100);
+
 
 			var task = response.task;
 			// multiplier can be either amount or price or in the future a more complex algorithm in relation to: price, comments, bids
