@@ -11,8 +11,6 @@ let view = ()=> {
 	var taskCount = 0;
 	var valueCount = 0;
 
-
-
 	let init = () => {
 		// renderer = new THREE.WebGLRenderer();
 		renderer = new THREE.WebGLRenderer( { antialias:true, alpha: true } );
@@ -63,19 +61,6 @@ let view = ()=> {
 		light.intensity = 0.3;
 		group = new THREE.Object3D();
 		scene.add( group );
-
-		// for ( var i = 0; i < 10; i ++ ) {
-	//
-		// 	var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
-		// 	var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
-		// 	var mesh = new THREE.Mesh( geometry, material );
-		// 	mesh.position.set( Math.random() - 0.5, Math.random() - 0.6, Math.random() - 0.5 ).normalize();
-		// 	mesh.position.multiplyScalar( Math.random() * 300 );
-		// 	mesh.rotation.set( Math.random() * 3, Math.random() * 3, Math.random() * 3 );
-		// 	mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 46;
-		// 	group.add( mesh );
-	//
-		// }
 
 		camera.position.z = 400;
 
@@ -129,9 +114,9 @@ let view = ()=> {
 
 	}
 
-	function makeTextSprite( message, parameters, position)
+	function makeTextSprite( message, parameters)
 	{
-		console.log("<<<<<< maketextsprite check position >>>>>>>>", position)
+		// console.log("<<<<<< maketextsprite")
 		if ( parameters === undefined ) parameters = {};
 
 		var fontface = parameters.hasOwnProperty("fontface") ?
@@ -160,7 +145,7 @@ let view = ()=> {
 		// get size data (height depends only on font size)
 		var metrics = context.measureText( message );
 		var textWidth = metrics.width;
-		console.log("text width:", textWidth)
+		// console.log("text width:", textWidth)
 
 
 		// background color
@@ -186,17 +171,8 @@ let view = ()=> {
 		var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color:  0xffffff });
 		var sprite = new THREE.Sprite( spriteMaterial );
 		sprite.scale.set(100,50,1.0);
-
-
-
-		// sprite.position.setX(posX);
-		// sprite.position.setY(posY);
-		// sprite.position.setZ(posZ);
-		sprite.position.set(position.x, position.y, position.z).normalize();
-		sprite.position.multiplyScalar(100);
-
-
-		console.log("sprite properties", sprite)
+		// sprite.position.set(position.x, position.y, position.z).normalize();
+		// sprite.position.multiplyScalar(100);
 
 		return sprite;
 	}
@@ -219,35 +195,36 @@ let view = ()=> {
 		ctx.stroke();
 	}
 
-	let addObject = function(multipliers, position) {
-		console.log("<<<< add group position >>>>>", position);
-
+	let addSphere = function(multipliers) {
 		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
-
-		var sphereRotationX =  Math.random() * 3;
-		var sphereRotationY =  Math.random() * 3;
-		var sphereRotationZ =  Math.random() * 3;
+		var scale = 0.1 * multipliers.price;
+		var sphereRotationX = Math.random() * 3;
+		var sphereRotationY = Math.random() * 3;
+		var sphereRotationZ = Math.random() * 3;
 		mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
-
-		//set multi
-		// mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * multipliers.price;
-
-		mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.1 * multipliers.price;
-
-		console.log("mesh properties", mesh);
-
+		mesh.scale.set(scale, scale, scale);
 		return mesh;
 	}
 
-	let addObjectPusher = (ev, obj) => {
+	let fuckmeifimgoingtorenamethisfuckingstrangefunction = (ev, obj) => {
+		// con.log("fuckme", obj);
+		// this function has intentionally been renamed in a passively aggressive manner... 
 		if (obj && obj.message && obj.message.task_id) {
-			serviceGetTaskAddObject(obj.message.task_id);
+			loadTask(obj.message.task_id);
+		} else {
+			gotTask({
+				task: {
+					name: obj.name,
+					amount: 100,
+					price: 100
+				}
+			});
 		}
 	}
 
-	let serviceGetTaskAddObject = (id) => {
+	let loadTask = (id) => {
 		var taskURL = config.serviceURL +  "/tasks/" + id;
 
 		var xmlhttp = new XMLHttpRequest();
@@ -255,87 +232,57 @@ let view = ()=> {
 		xmlhttp.onreadystatechange = function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 				var response = JSON.parse(xmlhttp.responseText);
-				myFunction(response);
+				gotTask(response);
 			}
 		};
 
 		xmlhttp.open("GET", taskURL, true);
 		xmlhttp.send();
-
-		function myFunction(response) {
-			console.log("response", response)
-
-			// Only add object when task exists
-			//First generate the shared position of the sphere and text
-			// var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
-			var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
-
-
-			var taskObject = new THREE.Object3D();
-			group.add( taskObject );
-			group.position.set( position.x, position.y, position.z ).normalize();
-			group.position.multiplyScalar(100);
-
-
-			var task = response.task;
-			// multiplier can be either amount or price or in the future a more complex algorithm in relation to: price, comments, bids
-			var amount = task.amount;
-			var price =	task.price;
-			// addObject(ev, obj);
-			var multipliers = { amount: task.amount, price: task.price };
-			var sphere = addObject(multipliers, position);
-			var spriteText = task.name + ": $" + price;
-			var spritey = makeTextSprite(spriteText, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
-			
-			taskObject.add(sphere);
-			taskObject.add(spritey);
-
-			meshes.push({
-				taskObject: taskObject,
-				sphere: sphere,
-				spritey: spritey
-			});
-
-			taskCount++;
-			valueCount+=price;
-
-			document.getElementById("task-counter").innerHTML = taskCount;
-			document.getElementById("value-counter").innerHTML = "$"+valueCount;
-		}
-
 	}
 
-  // let addObjectGenerator = (ev, obj) => {
-		// addObject();
 
-		// var spherePositionX =  Math.random() - 0.5;
-		// var spherePositionY =  Math.random() - 0.6;
-		// var spherePositionZ =  Math.random() - 0.5;
+	let gotTask = (response) =>{
+		console.log("gotTask", response);
 
-		// var spritey = makeTextSprite( obj.name, { fontsize: 32, fontface: "Arial", borderColor: {r:0, g:0, b:255, a:1.0}, borderThickness: 0 } );
-		// spritey.position.set(spherePositionX,spherePositionY,spherePositionZ);
-		// group.add( spritey );
+		var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
+		// var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
 
-  // }
 
+		var taskObject = new THREE.Object3D();
+		group.add( taskObject );
+		taskObject.position.set( position.x, position.y, position.z ).normalize();
+		taskObject.position.multiplyScalar(100);
+
+
+		var task = response.task;
+		// multiplier can be either amount or price or in the future a more complex algorithm in relation to: price, comments, bids
+		var amount = task.amount;
+		var price =	task.price;
+		var multipliers = { amount: task.amount, price: task.price };
+		var sphere = addSphere(multipliers);
+		var spriteText = task.name + ": $" + price;
+		var spritey = makeTextSprite(spriteText, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
+		
+		taskObject.add(sphere);
+		taskObject.add(spritey);
+
+		meshes.push({
+			taskObject: taskObject,
+			sphere: sphere,
+			spritey: spritey
+		});
+
+		taskCount++;
+		valueCount+=price;
+
+		document.getElementById("task-counter").innerHTML = taskCount;
+		document.getElementById("value-counter").innerHTML = "$"+valueCount;
+	}
 
 	init();
 	animate(0);
 
-	let customLog = (ev, status) => {
-		var div = document.createElement("div");
-		div.innerHTML = "### " + ev + " " + status;
-		document.body.appendChild(div);
-	}
-
-	let otherLog = (ev, status) => {
-		console.log(ev, status);
-			// if random is true use addObjectGenerator
-
-		addObjectPusher(ev, status);
-	}
-
 	return {
-		log: otherLog
+		log: fuckmeifimgoingtorenamethisfuckingstrangefunction
 	}
 }

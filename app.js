@@ -5,5 +5,5 @@ var v = view();
 
 g.init({
   onEvent: v.log,
-  random: false
+  random: true
 });

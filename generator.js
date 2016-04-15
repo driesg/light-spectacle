@@ -35,10 +35,11 @@ let generator = () => {
           // fake model
           id: Math.floor( Math.random() * 100),
           name: makeName(),
-          coments : Math.floor( Math.random() * 10),
-          assigned : false,
+          price: Math.floor( Math.random() * 100),
+          // comments : Math.floor( Math.random() * 10),
+          // assigned : false,
         });
-        setTimeout(doIt, 100 + Math.random() * 16000);
+        setTimeout(doIt, 100 + Math.random() * 1600);
       }
       return setTimeout(doIt, 1000);
     }
