@@ -15,10 +15,10 @@ let generator = () => {
 	let makeName = function() {
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    for( var i=0; i < 5; i++ )
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
+    var length = 5 + Math.floor(Math.random() * 50);
+    for( var i=0; i < length; i++ ) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
     return text;
 	}
   let initPusher = (options) => {
@@ -35,11 +35,9 @@ let generator = () => {
           // fake model
           id: Math.floor( Math.random() * 100),
           name: makeName(),
-          price: Math.floor( Math.random() * 100),
-          // comments : Math.floor( Math.random() * 10),
-          // assigned : false,
+          price: Math.floor( Math.random() * 1000),
         });
-        setTimeout(doIt, 100 + Math.random() * 1600);
+        setTimeout(doIt, 10000 + Math.random() * 10000);
       }
       return setTimeout(doIt, 1000);
     }

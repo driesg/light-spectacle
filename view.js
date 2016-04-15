@@ -4,9 +4,11 @@ let view = ()=> {
 
 	var con = console;
 
+	let pool = []; // pool not implemented... 
+	let meshes = [];
+
 	var camera, scene, renderer, composer, controls;
 	var group, light, light2, ambientLight;
-	let meshes = [];
 
 	var taskCount = 0;
 	var valueCount = 0;
@@ -40,7 +42,7 @@ let view = ()=> {
 		// ambientLight =  new THREE.AmbientLight( 0xf0f0f0 );
 		// ambientLight.intensity = 0.1;
 		// scene.add(ambientLight);
-		load()
+		load();
 
 		window.addEventListener( 'resize', onWindowResize, false );
 		document.getElementById("info").addEventListener('click', reload, false);
@@ -87,53 +89,47 @@ let view = ()=> {
 		load();
 	}
 
-	let checkObjects = (time) => {
-		// con.log("checkObjects", meshes.length);
-		for (var i = meshes.length - 1; i >= 0; i--) {
-			var mesh = meshes[i].taskObject;
-			var scale = mesh.scale.x;
-			var newScale = scale * 0.999;
-			if (newScale > 0.1) {
+	let scaleMeshes = (time) => {
+		const scaleFactor = 0.999;
+		var i, mesh, meshIndex, toRemove = [], scale, newScale, meshIndex;
+		// con.log("scaleMeshes", meshes.length);
+		toRemove = [];
+		for (i = meshes.length - 1; i >= 0; i--) {
+			mesh = meshes[i].taskObject;
+			scale = mesh.scale.x;
+			newScale = scale * scaleFactor;
+			if (newScale > 0.2) {
 				mesh.scale.set(newScale, newScale, newScale);	
+			} else {
+				toRemove.push(i);
 			}
+		}
+		for(i = toRemove.length - 1; i >= 0; i--) {
+			meshIndex = toRemove[i];
+			mesh = meshes[meshIndex].taskObject;
+			group.remove(mesh);
+			meshes.splice(i, 1);
 		}
 	}
 
 	let animate = (time) => {
-		// console.log("ANIMATE rgb effect value", this.effectRGB.uniforms[ 'amount' ].value );
-
 		requestAnimationFrame( animate );
 
-		checkObjects(time);
+		scaleMeshes(time);
 
 		group.rotation.x += 0.001;
-		group.rotation.y += 0.001;
+		group.rotation.y += 0.004;
 
 		composer.render();
 		controls.update();
 
 	}
 
-	function makeTextSprite( message, parameters)
-	{
-		// console.log("<<<<<< maketextsprite")
-		if ( parameters === undefined ) parameters = {};
+	let  makeTextSprite = (message) => {
 
-		var fontface = parameters.hasOwnProperty("fontface") ?
-			parameters["fontface"] : "Arial";
-
-		var fontsize = parameters.hasOwnProperty("fontsize") ?
-			parameters["fontsize"] : 18;
-
-		var borderThickness = parameters.hasOwnProperty("borderThickness") ?
-			parameters["borderThickness"] : 4;
-
-		var borderColor = parameters.hasOwnProperty("borderColor") ?
-			parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
-
-		var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
-			parameters["backgroundColor"] : { r:0, g:0, b:0, a:1.0 };
-
+		var fontsize = 32;
+		var fontface = "Georgia";
+		var borderThickness = 4;
 		// var spriteAlignment = THREE.SpriteAlignment.topLeft;
 
 		var canvas = document.createElement('canvas');
@@ -145,23 +141,16 @@ let view = ()=> {
 		// get size data (height depends only on font size)
 		var metrics = context.measureText( message );
 		var textWidth = metrics.width;
-		// console.log("text width:", textWidth)
+		// console.log("text width:", textWidth);
 
-
-		// background color
-		context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + ","
-									  + backgroundColor.b + "," + backgroundColor.a + ")";
-		// border color
-		context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + ","
-									  + borderColor.b + "," + borderColor.a + ")";
-
+		context.fillStyle = "#000";
+		context.strokeStyle = "#00f";
 		context.lineWidth = borderThickness;
 		roundRect(context, borderThickness/2, borderThickness/2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
 		// 1.4 is extra height factor for text below baseline: g,j,p,q.
 
 		// text color
-		context.fillStyle = "rgba(255, 255, 255, 1.0)";
-
+		context.fillStyle = "#fff";
 		context.fillText( message, borderThickness, fontsize + borderThickness);
 
 		// canvas contents will be used for a texture
@@ -170,9 +159,13 @@ let view = ()=> {
 
 		var spriteMaterial = new THREE.SpriteMaterial( { map: texture, color:  0xffffff });
 		var sprite = new THREE.Sprite( spriteMaterial );
-		sprite.scale.set(100,50,1.0);
-		// sprite.position.set(position.x, position.y, position.z).normalize();
-		// sprite.position.multiplyScalar(100);
+
+		var baseScale = 2;
+		sprite.scale.set(100 * baseScale, 50 * baseScale, 1 * baseScale);
+
+		// sprite.position.x = textWidth * 0.3;
+
+		// con.log(sprite.position);
 
 		return sprite;
 	}
@@ -199,7 +192,7 @@ let view = ()=> {
 		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
 		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
-		var scale = 0.1 * multipliers.price;
+		var scale = 0.02 * multipliers.price;
 		var sphereRotationX = Math.random() * 3;
 		var sphereRotationY = Math.random() * 3;
 		var sphereRotationZ = Math.random() * 3;
@@ -208,19 +201,20 @@ let view = ()=> {
 		return mesh;
 	}
 
-	let fuckmeifimgoingtorenamethisfuckingstrangefunction = (ev, obj) => {
-		// con.log("fuckme", obj);
-		// this function has intentionally been renamed in a passively aggressive manner... 
-		if (obj && obj.message && obj.message.task_id) {
-			loadTask(obj.message.task_id);
+	let bananas = (ev, obj) => {
+		if (obj) {
+			if (obj.message && obj.message.task_id) {
+				loadTask(obj.message.task_id);
+			} else if (obj.name) {
+				gotTask({
+					task: {
+						name: obj.name,
+						price: obj.price
+					}
+				});
+			}
 		} else {
-			gotTask({
-				task: {
-					name: obj.name,
-					amount: 100,
-					price: 100
-				}
-			});
+			con.log("progress", ev, obj);
 		}
 	}
 
@@ -240,28 +234,34 @@ let view = ()=> {
 		xmlhttp.send();
 	}
 
-
 	let gotTask = (response) =>{
-		console.log("gotTask", response);
+		var task = response.task;
+		// console.log("gotTask task", task.name. task.price);
+
+		makeObject(task);
+
+		taskCount++;
+		valueCount += task.price;
+
+		document.getElementById("task-counter").innerHTML = taskCount;
+		document.getElementById("value-counter").innerHTML = "$"+valueCount;
+	}
+
+	let makeObject = (task) => {
 
 		var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
 		// var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
-
 
 		var taskObject = new THREE.Object3D();
 		group.add( taskObject );
 		taskObject.position.set( position.x, position.y, position.z ).normalize();
 		taskObject.position.multiplyScalar(100);
 
-
-		var task = response.task;
 		// multiplier can be either amount or price or in the future a more complex algorithm in relation to: price, comments, bids
-		var amount = task.amount;
-		var price =	task.price;
-		var multipliers = { amount: task.amount, price: task.price };
+		var multipliers = {price: task.price };
 		var sphere = addSphere(multipliers);
-		var spriteText = task.name + ": $" + price;
-		var spritey = makeTextSprite(spriteText, { fontsize: 32, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0} }, position);
+		var spriteText = task.name + ": $" + task.price;
+		var spritey = makeTextSprite(spriteText);
 		
 		taskObject.add(sphere);
 		taskObject.add(spritey);
@@ -272,17 +272,13 @@ let view = ()=> {
 			spritey: spritey
 		});
 
-		taskCount++;
-		valueCount+=price;
-
-		document.getElementById("task-counter").innerHTML = taskCount;
-		document.getElementById("value-counter").innerHTML = "$"+valueCount;
 	}
+
 
 	init();
 	animate(0);
 
 	return {
-		log: fuckmeifimgoingtorenamethisfuckingstrangefunction
+		log: bananas
 	}
 }
