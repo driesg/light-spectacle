@@ -64,7 +64,7 @@ let view = ()=> {
 		group = new THREE.Object3D();
 		scene.add( group );
 
-		camera.position.z = 400;
+		camera.position.z = 300;
 
 		composer = new THREE.EffectComposer( renderer );
 		composer.addPass( new THREE.RenderPass( scene, camera ) );
@@ -90,7 +90,7 @@ let view = ()=> {
 	}
 
 	let scaleMeshes = (time) => {
-		const scaleFactor = 0.999;
+		const scaleFactor = 0.9995;
 		var i, mesh, meshIndex, toRemove = [], scale, newScale, meshIndex;
 		// con.log("scaleMeshes", meshes.length);
 		toRemove = [];
@@ -104,11 +104,16 @@ let view = ()=> {
 				toRemove.push(i);
 			}
 		}
+
 		for(i = toRemove.length - 1; i >= 0; i--) {
 			meshIndex = toRemove[i];
-			mesh = meshes[meshIndex].taskObject;
-			group.remove(mesh);
-			meshes.splice(i, 1);
+			try {
+				mesh = meshes[meshIndex].taskObject;
+				group.remove(mesh);
+				meshes.splice(i, 1);
+			} catch(err) { // i assume the array has to be sorted descending first... 
+				con.log("toRemove", err, toRemove);
+			}
 		}
 	}
 
