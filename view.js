@@ -4,7 +4,7 @@ let view = ()=> {
 
 	var con = console;
 
-	let pool = []; // pool not implemented... 
+	let pool = []; // pool not implemented...
 	let meshes = [];
 
 	var camera, scene, renderer, composer, controls;
@@ -90,7 +90,8 @@ let view = ()=> {
 	}
 
 	let scaleMeshes = (time) => {
-		const scaleFactor = 0.9995;
+		// const scaleFactor = 0.9995;
+		const scaleFactor = 0.999995;
 		var i, mesh, meshIndex, toRemove = [], scale, newScale, meshIndex;
 		// con.log("scaleMeshes", meshes.length);
 		toRemove = [];
@@ -99,7 +100,7 @@ let view = ()=> {
 			scale = mesh.scale.x;
 			newScale = scale * scaleFactor;
 			if (newScale > 0.2) {
-				mesh.scale.set(newScale, newScale, newScale);	
+				mesh.scale.set(newScale, newScale, newScale);
 			} else {
 				toRemove.push(i);
 			}
@@ -111,7 +112,7 @@ let view = ()=> {
 				mesh = meshes[meshIndex].taskObject;
 				group.remove(mesh);
 				meshes.splice(i, 1);
-			} catch(err) { // i assume the array has to be sorted descending first... 
+			} catch(err) { // i assume the array has to be sorted descending first...
 				con.log("toRemove", err, toRemove);
 			}
 		}
@@ -267,7 +268,7 @@ let view = ()=> {
 		var sphere = addSphere(multipliers);
 		var spriteText = task.name + ": $" + task.price;
 		var spritey = makeTextSprite(spriteText);
-		
+
 		taskObject.add(sphere);
 		taskObject.add(spritey);
 
