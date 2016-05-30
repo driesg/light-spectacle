@@ -90,8 +90,7 @@ let view = ()=> {
 	}
 
 	let scaleMeshes = (time) => {
-		// const scaleFactor = 0.9995;
-		const scaleFactor = 0.999995;
+		const scaleFactor = 0.99995;
 		var i, mesh, meshIndex, toRemove = [], scale, newScale, meshIndex;
 		// con.log("scaleMeshes", meshes.length);
 		toRemove = [];
