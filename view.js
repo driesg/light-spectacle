@@ -90,7 +90,7 @@ let view = ()=> {
 	}
 
 	let scaleMeshes = (time) => {
-		const scaleFactor = 0.99995;
+		const scaleFactor = 0.9995;
 		var i, mesh, meshIndex, toRemove = [], scale, newScale, meshIndex;
 		// con.log("scaleMeshes", meshes.length);
 		toRemove = [];
@@ -117,8 +117,10 @@ let view = ()=> {
 		}
 	}
 
+	var currentTime = 0;
+	const frameRate = 1000 / 12;
 	let animate = (time) => {
-		requestAnimationFrame( animate );
+		// requestAnimationFrame( animate );
 
 		scaleMeshes(time);
 
@@ -127,7 +129,10 @@ let view = ()=> {
 
 		composer.render();
 		controls.update();
-
+		setTimeout(function() {
+			currentTime += 0.1;
+			animate(currentTime);
+		}, frameRate);
 	}
 
 	let  makeTextSprite = (message) => {
