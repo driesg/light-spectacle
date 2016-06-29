@@ -211,52 +211,6 @@ let view = ()=> {
 		return mesh;
 	}
 
-	let bananas = (ev, obj) => {
-		if (obj) {
-			if (obj.message && obj.message.task_id) {
-				loadTask(obj.message.task_id);
-			} else if (obj.name) {
-				gotTask({
-					task: {
-						name: obj.name,
-						price: obj.price
-					}
-				});
-			}
-		} else {
-			con.log("progress", ev, obj);
-		}
-	}
-
-	let loadTask = (id) => {
-		var taskURL = config.serviceURL +  "/tasks/" + id;
-
-		var xmlhttp = new XMLHttpRequest();
-
-		xmlhttp.onreadystatechange = function() {
-			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-				var response = JSON.parse(xmlhttp.responseText);
-				gotTask(response);
-			}
-		};
-
-		xmlhttp.open("GET", taskURL, true);
-		xmlhttp.send();
-	}
-
-	let gotTask = (response) =>{
-		var task = response.task;
-		// console.log("gotTask task", task.name. task.price);
-
-		makeObject(task);
-
-		taskCount++;
-		valueCount += task.price;
-
-		document.getElementById("task-counter").innerHTML = taskCount;
-		document.getElementById("value-counter").innerHTML = "$"+valueCount;
-	}
-
 	let makeObject = (task) => {
 
 		var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
@@ -284,11 +238,24 @@ let view = ()=> {
 
 	}
 
+	let gotTask = (task) =>{
+		// console.log("view gotTask task", task);
+		console.log("gotTask task", task.name, task.price);
+
+		makeObject(task);
+
+		taskCount++;
+		valueCount += task.price;
+
+		document.getElementById("task-counter").innerHTML = taskCount;
+		document.getElementById("value-counter").innerHTML = "$"+valueCount;
+	}
+
 
 	init();
 	animate(0);
 
 	return {
-		log: bananas
+		gotTask: gotTask
 	}
 }
