@@ -1,11 +1,12 @@
-var g = generator();
 var m = model();
-var v = view();
-// var r = render();
-
-g.init({
-  // onEvent: v.log,
+var v = view({
+  model: m
+});
+var g = generator({
+  model: m,
   onTaskLoaded: v.gotTask,
   // random: true
   random: false
 });
+
+window.model = m;

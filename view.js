@@ -1,11 +1,11 @@
 "use strict";
 
-let view = ()=> {
+let view = (options) => {
 
-	var con = console;
-
+	const con = console;
+	const model = options.model;
 	let pool = []; // pool not implemented...
-	let meshes = [];
+	let tasks = [];
 
 	var camera, scene, renderer, composer, controls;
 	var group, light, light2, ambientLight;
@@ -69,13 +69,11 @@ let view = ()=> {
 		composer = new THREE.EffectComposer( renderer );
 		composer.addPass( new THREE.RenderPass( scene, camera ) );
 
-		//disabled dot screen shader for now
-		var effect = new THREE.ShaderPass( THREE.DotScreenShader );
-
-		effect.uniforms[ 'scale' ].value = 16;
-		effect.uniforms[ 'tDiffuse' ].value = 0.8;
-
-		composer.addPass( effect );
+		// disabled dot screen shader for now
+		// var effect = new THREE.ShaderPass( THREE.DotScreenShader );
+		// effect.uniforms[ 'scale' ].value = 16;
+		// effect.uniforms[ 'tDiffuse' ].value = 0.8;
+		// composer.addPass( effect );
 
 		this.effectRGB = new THREE.ShaderPass( THREE.RGBShiftShader );
 		this.effectRGB.uniforms[ 'amount' ].value = 0.0015;
@@ -89,30 +87,48 @@ let view = ()=> {
 		load();
 	}
 
+	function createVector(x, y, z, camera, width, height) {
+        var p = new THREE.Vector3(x, y, z);
+        var vector = p.project(camera);
+        vector.x = (vector.x + 1) / 2 * width;
+        vector.y = -(vector.y - 1) / 2 * height;
+        return vector;
+    }
+
+
 	let scaleMeshes = (time) => {
 		const scaleFactor = 0.9995;
-		var i, mesh, meshIndex, toRemove = [], scale, newScale, meshIndex;
-		// con.log("scaleMeshes", meshes.length);
+		// const scaleFactor = 0.99;
+		var i, taskGroup, task, taskIndex, toRemove, scale, newScale;
+		// con.log("scaleMeshes", tasks.length);
 		toRemove = [];
-		for (i = meshes.length - 1; i >= 0; i--) {
-			mesh = meshes[i].taskObject;
-			scale = mesh.scale.x;
+		for (i = tasks.length - 1; i >= 0; i--) {
+			tasks[i].bids.rotation.z += 0.1;
+			tasks[i].comments.rotation.y -= 0.1;
+			taskGroup = tasks[i].taskGroup;
+			scale = taskGroup.scale.x;
 			newScale = scale * scaleFactor;
-			if (newScale > 0.2) {
-				mesh.scale.set(newScale, newScale, newScale);
+			// con.log("i, newScale", i, newScale);
+			if (newScale > 0.1) {
+				taskGroup.scale.set(newScale, newScale, newScale);
 			} else {
+				// con.log("i, newScale", i, newScale);
 				toRemove.push(i);
 			}
 		}
 
+		toRemove.sort();
 		for(i = toRemove.length - 1; i >= 0; i--) {
-			meshIndex = toRemove[i];
+			taskIndex = toRemove[i];
 			try {
-				mesh = meshes[meshIndex].taskObject;
-				group.remove(mesh);
-				meshes.splice(i, 1);
-			} catch(err) { // i assume the array has to be sorted descending first...
-				con.log("toRemove", err, toRemove);
+				taskGroup = tasks[taskIndex].taskGroup;
+				group.remove(taskGroup);
+				task = tasks[taskIndex].task;
+				model.remove(task);
+				tasks.splice(taskIndex, 1);
+				con.log("toRemove success", tasks);
+			} catch(err) {
+				con.log("toRemove fail", err, toRemove, taskIndex, tasks);
 			}
 		}
 	}
@@ -122,10 +138,12 @@ let view = ()=> {
 	let animate = (time) => {
 		// requestAnimationFrame( animate );
 
+		// con.log(tasks.length);
+
 		scaleMeshes(time);
 
-		group.rotation.x += 0.001;
-		group.rotation.y += 0.004;
+		group.rotation.x += 0.005;
+		group.rotation.y += 0.04;
 
 		composer.render();
 		controls.update();
@@ -135,7 +153,7 @@ let view = ()=> {
 		}, frameRate);
 	}
 
-	let  makeTextSprite = (message) => {
+	let makeTextSprite = (message) => {
 
 		var fontsize = 32;
 		var fontface = "Georgia";
@@ -198,16 +216,15 @@ let view = ()=> {
 		ctx.stroke();
 	}
 
-	let addSphere = function(multipliers) {
-		var geometry = new THREE.SphereGeometry( Math.random() + 0.9, Math.random() + 6, Math.random()  );
-		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
+	let addSphere = function(size, colour) {
+		// var geometry = new THREE.SphereGeometry(Math.random() + 0.9, Math.random() + 6, Math.random()  );
+		var geometry = new THREE.SphereGeometry(size, 6, 6);
+		var material = new THREE.MeshPhongMaterial( { color: colour, shading: THREE.FlatShading } );
 		var mesh = new THREE.Mesh( geometry, material );
-		var scale = 0.02 * multipliers.price;
 		var sphereRotationX = Math.random() * 3;
 		var sphereRotationY = Math.random() * 3;
 		var sphereRotationZ = Math.random() * 3;
-		mesh.rotation.set( sphereRotationX, sphereRotationY, sphereRotationZ);
-		mesh.scale.set(scale, scale, scale);
+		mesh.rotation.set(sphereRotationX, sphereRotationY, sphereRotationZ);
 		return mesh;
 	}
 
@@ -215,32 +232,67 @@ let view = ()=> {
 
 		var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
 		// var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
+		var scale = 0.02 * task.price;
+		con.log(scale);
 
-		var taskObject = new THREE.Object3D();
-		group.add( taskObject );
-		taskObject.position.set( position.x, position.y, position.z ).normalize();
-		taskObject.position.multiplyScalar(100);
+		var taskGroup = new THREE.Object3D();
+		group.add( taskGroup );
+		taskGroup.position.set( position.x, position.y, position.z ).normalize();
+		taskGroup.position.multiplyScalar(100);
+		taskGroup.scale.set(scale, scale, scale);
 
-		// multiplier can be either amount or price or in the future a more complex algorithm in relation to: price, comments, bids
-		var multipliers = {price: task.price };
-		var sphere = addSphere(multipliers);
+		// multiplier can be either amount or price or in the future a more complex algorithm in relation to: 
+		// price, comments, bids
+		// this used to be multiplier, now passing in scale
+		var sphere = addSphere(4, task.colour);
 		var spriteText = task.name + ": $" + task.price;
 		var spritey = makeTextSprite(spriteText);
 
-		taskObject.add(sphere);
-		taskObject.add(spritey);
+		var angle, radius, x, y, z, bidSphere, commentSphere;
+		var bidRadius = 15 * scale;
+		var commentRadius = 13 * scale;
+		var bids = new THREE.Object3D();
+		for (var i = 0; i < task.bids_count; i++) {
+			// con.log('bids', task.id, i);
+			bidSphere = addSphere(3, task.colour);//, 0xff0000);
+			bids.add(bidSphere);
+			angle = i / task.bids_count * Math.PI * 2;
+			x = Math.sin(angle) * bidRadius;
+			y = Math.cos(angle) * bidRadius;
+			z = 0;
+			bidSphere.position.set(x, y, z);
+		}
+		var comments = new THREE.Object3D();
+		for (var j = 0; j < task.comments_count; j++) {
+			// con.log('comments', task.id, j);
+			commentSphere = addSphere(3, task.colour);//, 0x00ff00);
+			comments.add(commentSphere);
+			angle = j / task.comments_count * Math.PI * 2;
+			x = Math.sin(angle) * commentRadius;
+			y = 0;
+			z = Math.cos(angle) * commentRadius;
+			commentSphere.position.set(x, y, z);
+		}
 
-		meshes.push({
-			taskObject: taskObject,
+		taskGroup.add(bids);
+		taskGroup.add(comments);
+		taskGroup.add(sphere);
+		taskGroup.add(spritey);
+
+		tasks.push({
+			task: task,
+			taskGroup: taskGroup,
 			sphere: sphere,
-			spritey: spritey
+			spritey: spritey,
+			bids: bids,
+			comments: comments
 		});
 
 	}
 
 	let gotTask = (task) =>{
 		// console.log("view gotTask task", task);
-		console.log("gotTask task", task.name, task.price);
+		console.log("gotTask task", task.name, task.price, task.bids_count, task.comments_count);
 
 		makeObject(task);
 
@@ -251,7 +303,12 @@ let view = ()=> {
 		document.getElementById("value-counter").innerHTML = "$"+valueCount;
 	}
 
+	let handleChangeTask = (task) => {
+		con.log("view. handleChangeTask", task);
+	}
 
+	model.on("newtask", gotTask);
+	model.on("changetask", handleChangeTask);
 	init();
 	animate(0);
 

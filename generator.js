@@ -1,8 +1,9 @@
 "use strict";
 
-let generator = () => {
+let generator = (options) => {
 
   let con = console;
+  const model = options.model;
   let onTaskLoaded;
   let events = {
     // COMMENT: "COMMENT"
@@ -21,7 +22,7 @@ let generator = () => {
     }
     return text;
 	}
-  let initPusher = (options) => {
+  let init = () => {
 
     onTaskLoaded = options.onTaskLoaded;
 
@@ -63,6 +64,7 @@ let generator = () => {
 
     // checkQueue();
     loadTasks();
+    checkTasks();
   }
 
 
@@ -96,58 +98,33 @@ let generator = () => {
   }
 
   let loadTasks = () => {
-    var tasksURL = config.serviceURL +  "/tasks/?limit=5";
-    request(tasksURL, gotTasks);
-  }
-
-  let gotTasks = (response) => {
-    var tasks = response.tasks;
-    con.log("Generator gotTasks", tasks);
-    tasks.forEach(onTaskLoaded);
+    request(config.serviceURL +  "/tasks/?limit=5", (response) => {
+      response.tasks.forEach(handleTask);
+    });
   }
 
   let loadTask = (id) => {
-    var taskURL = config.serviceURL +  "/tasks/" + id;
-    request(taskURL, gotTask);
+    request(config.serviceURL +  "/tasks/" + id, (response) => {
+      handleTask(response.task);
+    });
   }
 
-  let gotTask = (response) => {
-    con.log("Generator gotTask", response);
-    var task = response.task;
-    onTaskLoaded(task);
-    addToQueue(task.id);
+  let handleTask = (task) => {
+    model.add(task);
   }
 
-  let queue = [];
-
-  let addToQueue = (id) => {
-    queue.push(id);
-    checkQueue();
+  let checkTasks = () => {
+    var tasks = model.tasks();
+    var timeout = tasks.length ? 25000 : 5000;
+    con.log("loading tasks in", timeout);
+    setTimeout(() => {
+      loadTasks();
+      checkTasks();
+    }, timeout);
   }
 
-  var currentQueueItem = 0;
-  let checkQueue = () => {
-    con.log("checkQueue queue", queue);
-    if (queue.length) {
-      var id = queue[currentQueueItem];
-      currentQueueItem++;
-      currentQueueItem %= queue.length;
-      con.log("about to load", queue, currentQueueItem);
-      setTimeout(() => {
-        var taskURL = config.serviceURL +  "/tasks/" + id;
-        request(taskURL, (response) => {
-          con.log("checkQueue got task", response.task, response.bids.length);
-        });
-      }, 2000);
-    } else {
-      con.log("no queue - checking again in 20s");
-      setTimeout(checkQueue, 20000)
-    }
-  }
+  init();
 
-
-  return {
-    init: initPusher
-  }
+  return {}
 
 }
