@@ -98,7 +98,7 @@ let generator = (options) => {
   }
 
   let loadTasks = () => {
-    request(config.serviceURL +  "/tasks/?limit=5", (response) => {
+    request(config.serviceURL +  "/tasks/?limit=15", (response) => {
       response.tasks.forEach(handleTask);
     });
   }
@@ -124,6 +124,13 @@ let generator = (options) => {
   }
 
   init();
+
+  // setTimeout(() => {
+  //   handleTask({id: 0, name: "test", price: 100, colour: { r: 100, g: 100, b: 255 }, bids_count: 1, comments_count: 0});
+  //   handleTask({id: 1, name: "test2", price: 200, colour: { r: 100, g: 100, b: 255 }, bids_count: 5, comments_count: 10});
+  //   handleTask({id: 2, name: "test3", price: 800, colour: { r: 100, g: 100, b: 255 }, bids_count: 0, comments_count: 5});
+  // }, 100);
+
 
   return {}
 

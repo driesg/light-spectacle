@@ -43,20 +43,22 @@ const model = () => {
 				trigger("newtask", task);
 			} else {
 				var existingTask = tasks[taskIndex];
-				var changed = false;
+				var changed = false, changedBids = false, changedComments = false;
 				if (existingTask.bids_count !== task.bids_count) {
-					con.log(`task bids ${existingTask.bids_count} > ${task.bids_count}`);
+					// con.log(`task bids ${existingTask.bids_count} > ${task.bids_count}`);
 					changed = true;
+					changedBids = true;
 				}
 				if (existingTask.comments_count !== task.comments_count) {
-					con.log(`task comments ${existingTask.comments_count} > ${task.comments_count}`);
+					// con.log(`task comments ${existingTask.comments_count} > ${task.comments_count}`);
 					changed = true;
+					changedComments = true;
 				}
 				if (changed) {
-					trigger("changetask", task);
+					trigger("changetask", task, {changedBids, changedComments});
 					tasks[taskIndex] = task;
 				} else {
-					con.log('same task, no change');
+					// con.log('same task, no change');
 				}
 			}
 		},

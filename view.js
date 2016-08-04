@@ -4,6 +4,11 @@ let view = (options) => {
 
 	const con = console;
 	const model = options.model;
+
+	const scaleFactor = 0.9995;
+	// const scaleFactor = 0.99;
+
+
 	let pool = []; // pool not implemented...
 	let tasks = [];
 
@@ -64,22 +69,22 @@ let view = (options) => {
 		group = new THREE.Object3D();
 		scene.add( group );
 
-		camera.position.z = 300;
+		camera.position.z = 500;
 
 		composer = new THREE.EffectComposer( renderer );
 		composer.addPass( new THREE.RenderPass( scene, camera ) );
 
-		// disabled dot screen shader for now
-		// var effect = new THREE.ShaderPass( THREE.DotScreenShader );
-		// effect.uniforms[ 'scale' ].value = 16;
-		// effect.uniforms[ 'tDiffuse' ].value = 0.8;
-		// composer.addPass( effect );
+		// var effectDots = new THREE.ShaderPass( THREE.DotScreenShader );
+		// effectDots.uniforms[ 'scale' ].value = 16;
+		// effectDots.uniforms[ 'tDiffuse' ].value = 0.9;
+		// effectDots.renderToScreen = true;
+		// composer.addPass( effectDots );
 
-		this.effectRGB = new THREE.ShaderPass( THREE.RGBShiftShader );
-		this.effectRGB.uniforms[ 'amount' ].value = 0.0015;
-		this.effectRGB.uniforms[ 'angle' ].value = 0 ;
-		this.effectRGB.renderToScreen = true;
-		composer.addPass( this.effectRGB );
+		var effectRGB = new THREE.ShaderPass( THREE.RGBShiftShader );
+		effectRGB.uniforms[ 'amount' ].value = 0;//0.003;
+		effectRGB.uniforms[ 'angle' ].value = 0.1;
+		effectRGB.renderToScreen = true;
+		composer.addPass( effectRGB );
 
 	}
 
@@ -97,19 +102,16 @@ let view = (options) => {
 
 
 	let scaleMeshes = (time) => {
-		const scaleFactor = 0.9995;
-		// const scaleFactor = 0.99;
 		var i, taskGroup, task, taskIndex, toRemove, scale, newScale;
 		// con.log("scaleMeshes", tasks.length);
 		toRemove = [];
 		for (i = tasks.length - 1; i >= 0; i--) {
-			tasks[i].bids.rotation.z += 0.1;
-			tasks[i].comments.rotation.y -= 0.1;
 			taskGroup = tasks[i].taskGroup;
 			scale = taskGroup.scale.x;
 			newScale = scale * scaleFactor;
+			tasks[i].orbit();
 			// con.log("i, newScale", i, newScale);
-			if (newScale > 0.1) {
+			if (newScale > 0.2) {
 				taskGroup.scale.set(newScale, newScale, newScale);
 			} else {
 				// con.log("i, newScale", i, newScale);
@@ -126,7 +128,7 @@ let view = (options) => {
 				task = tasks[taskIndex].task;
 				model.remove(task);
 				tasks.splice(taskIndex, 1);
-				con.log("toRemove success", tasks);
+				// con.log("toRemove success", tasks);
 			} catch(err) {
 				con.log("toRemove fail", err, toRemove, taskIndex, tasks);
 			}
@@ -134,7 +136,7 @@ let view = (options) => {
 	}
 
 	var currentTime = 0;
-	const frameRate = 1000 / 12;
+	const frameRate = 1000 / 25;
 	let animate = (time) => {
 		// requestAnimationFrame( animate );
 
@@ -143,7 +145,7 @@ let view = (options) => {
 		scaleMeshes(time);
 
 		group.rotation.x += 0.005;
-		group.rotation.y += 0.04;
+		group.rotation.y += 0.002;
 
 		composer.render();
 		controls.update();
@@ -230,31 +232,48 @@ let view = (options) => {
 
 	let makeObject = (task) => {
 
-		var position = { x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 };
+		var position = {
+			x: 100, //(Math.random() - 0.5) * 100,
+			y: 100, //(Math.random() - 0.5) * 100,
+			z: 100, //(Math.random() - 0.5) * 100
+		};
+		var orbitRotation = {
+			x: Math.random() * 3,
+			y: Math.random() * 3,
+			z: Math.random() * 3,
+		};
+		var orbitRotationSpeed = {
+			x: (Math.random() - 0.5) * 0.08,
+			y: (Math.random() - 0.5) * 0.08,
+			z: (Math.random() - 0.5) * 0.08,
+		};
 		// var position = { x: Math.random() - 0.8, y: Math.random() - 0.3, z: Math.random() - 0.3 };
 		var scale = 0.02 * task.price;
-		con.log(scale);
+
+		var taskOrbiter = new THREE.Object3D();
+		group.add( taskOrbiter );
+		taskOrbiter.rotation.set(orbitRotation.x, orbitRotation.y, orbitRotation.z);
 
 		var taskGroup = new THREE.Object3D();
-		group.add( taskGroup );
-		taskGroup.position.set( position.x, position.y, position.z ).normalize();
-		taskGroup.position.multiplyScalar(100);
+		taskOrbiter.add( taskGroup );
+		taskGroup.position.set( position.x, position.y, position.z );//.normalize();
+		// taskGroup.position.multiplyScalar(100);
 		taskGroup.scale.set(scale, scale, scale);
 
 		// multiplier can be either amount or price or in the future a more complex algorithm in relation to: 
 		// price, comments, bids
 		// this used to be multiplier, now passing in scale
 		var sphere = addSphere(4, task.colour);
-		var spriteText = task.name + ": $" + task.price;
-		var spritey = makeTextSprite(spriteText);
+		// var spriteText = task.name + ": $" + task.price;
+		// var spritey = makeTextSprite(spriteText);
 
 		var angle, radius, x, y, z, bidSphere, commentSphere;
-		var bidRadius = 15 * scale;
-		var commentRadius = 13 * scale;
+		var bidRadius = 12;
+		var commentRadius = 6;
 		var bids = new THREE.Object3D();
 		for (var i = 0; i < task.bids_count; i++) {
 			// con.log('bids', task.id, i);
-			bidSphere = addSphere(3, task.colour);//, 0xff0000);
+			bidSphere = addSphere(2, task.colour);
 			bids.add(bidSphere);
 			angle = i / task.bids_count * Math.PI * 2;
 			x = Math.sin(angle) * bidRadius;
@@ -265,7 +284,7 @@ let view = (options) => {
 		var comments = new THREE.Object3D();
 		for (var j = 0; j < task.comments_count; j++) {
 			// con.log('comments', task.id, j);
-			commentSphere = addSphere(3, task.colour);//, 0x00ff00);
+			commentSphere = addSphere(2, task.colour);
 			comments.add(commentSphere);
 			angle = j / task.comments_count * Math.PI * 2;
 			x = Math.sin(angle) * commentRadius;
@@ -277,13 +296,23 @@ let view = (options) => {
 		taskGroup.add(bids);
 		taskGroup.add(comments);
 		taskGroup.add(sphere);
-		taskGroup.add(spritey);
+		// taskGroup.add(spritey);
+
+		let orbit = () => {
+			bids.rotation.z += 0.1;
+			comments.rotation.y -= 0.1;
+			taskOrbiter.rotation.x += orbitRotationSpeed.x;
+			taskOrbiter.rotation.y += orbitRotationSpeed.y;
+			taskOrbiter.rotation.z += orbitRotationSpeed.z;
+		}
 
 		tasks.push({
+			id: task.id,
+			orbit: orbit,
 			task: task,
 			taskGroup: taskGroup,
 			sphere: sphere,
-			spritey: spritey,
+			// spritey: spritey,
 			bids: bids,
 			comments: comments
 		});
@@ -291,6 +320,7 @@ let view = (options) => {
 	}
 
 	let gotTask = (task) =>{
+		// return;
 		// console.log("view gotTask task", task);
 		console.log("gotTask task", task.name, task.price, task.bids_count, task.comments_count);
 
@@ -303,8 +333,18 @@ let view = (options) => {
 		document.getElementById("value-counter").innerHTML = "$"+valueCount;
 	}
 
-	let handleChangeTask = (task) => {
-		con.log("view. handleChangeTask", task);
+	let handleChangeTask = (task, delta) => {
+		con.log("view. handleChangeTask", task, delta);
+		var found = false;
+		var taskObject = null;
+		for (var i = tasks.length - 1; i >= 0 && found == false; i--) {
+			if (tasks[i].id === task.id) {
+				found = true;
+				taskObject = tasks[i];
+			}
+		}
+		con.log("taskObject", taskObject)
+
 	}
 
 	model.on("newtask", gotTask);
